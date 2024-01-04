@@ -17,30 +17,50 @@ const today = moment().toDate();
 const websitesToCrawl = [
   {
     websiteURL: crawPageViet69.websiteURL,
-    crawlMethod: async (page, websiteURL) => {
-      // Custom logic for crawling website1
-      return page.$$eval(crawPageViet69.tagToCrawl, (links, websiteURL, today) => {
-        return links.map(link => ({
-          source: websiteURL,
-          href: link.getAttribute('href'),
-          title: link.getAttribute('title'),
+    crawlMethod: async () => {
+      const url = crawPageViet69.websiteURL;
+      const response = await axios.get(url);
+      const $ = cheerio.load(response.data);
+
+      const today = new Date().toLocaleDateString('en-GB');
+
+      const links = [];
+
+      $(`${crawPageViet69.tagToCrawl}`).each((index, element) => {
+        const href = $(element).attr('href');
+        const title = $(element).attr('title');
+        links.push({
+          source: crawPageViet69.websiteURL,
+          href,
+          title,
           date: today,
-        }));
-      }, websiteURL, today);
+        });
+      });
+
+      return links;
     },
   },
   {
     websiteURL: crawPageSexDiary.websiteURL,
-    crawlMethod: async (page, websiteURL) => {
-      // Custom logic for crawling website1
-      return page.$$eval(crawPageSexDiary.tagToCrawl, (links, websiteURL, today) => {
-        return links.map(link => ({
-          source: websiteURL,
-          href: link.getAttribute('href'),
-          title: link.getAttribute('title'),
+    crawlMethod: async () => {
+      const url = crawPageSexDiary.websiteURL;
+      const response = await axios.get(url);
+      const $ = cheerio.load(response.data);
+
+      const links = [];
+
+      $(`${crawPageSexDiary.tagToCrawl}`).each((index, element) => {
+        const href = $(element).attr('href');
+        const title = $(element).attr('title');
+        links.push({
+          source: crawPageSexDiary.websiteURL,
+          href,
+          title,
           date: today,
-        }));
-      }, websiteURL, today);
+        });
+      });
+
+      return links;
     },
   },
 ];
@@ -48,24 +68,12 @@ const websitesToCrawl = [
 async function crawlVideos(websites) {
   const results = [];
 
-  for (const { websiteURL, crawlMethod } of websites) {
-    let browser;
-
+  for (const { crawlMethod } of websites) {
     try {
-      browser = await puppeteer.launch({
-        headless: "new", 
-      }, { args: ['--no-sandbox',, `--headless`, `--disable-gpu`, `--disable-dev-shm-usage`]});
-      const page = await browser.newPage();
-      await page.setDefaultNavigationTimeout(90000);
-      await page.goto(websiteURL);
-      const clipLinks = await crawlMethod(page, websiteURL);
+      const clipLinks = await crawlMethod();
       results.push(...clipLinks);
     } catch (error) {
-      console.error(`Error during crawling ${websiteURL}:`, error);
-    } finally {
-      if (browser) {
-        await browser.close();
-      }
+      console.error('Error during crawling:', error);
     }
   }
 
@@ -138,62 +146,26 @@ async function deleteOldVideos() {
 }
 
 
-// const updateNewVideo = async (req) => {
-//   try {
-//     const newData = await crawlVideos(websitesToCrawl);
-//     const existingData = await readExistingData()
-//     const difference = findDifferences(newData, existingData)
-//     // If there are differences, send an email and write the new data to the CSV file
-//     if (difference.length > 0) {
-//       helperFn.sendEmail(difference);
-//       writeNewVideo(difference);
-//       deleteOldVideos();
-//       return RESPONSE.SEND_EMAIL_SUCCESSFULLY;
-//     }else {
-//       helperFn.sendEmail('No new video');
-//       deleteOldVideos();
-//       return RESPONSE.SEND_EMAIL_SUCCESSFULLY;
-//     }
-//   } catch (error) {
-//     console.error('Error:', error);
-//   }
-// };
 const updateNewVideo = async (req) => {
   try {
-    const url = crawPageViet69.websiteURL;
-    const response = await axios.get(url);
-    const $ = cheerio.load(response.data);
-
-    const links = [];
-
-    // Select elements by class
-    // $('.clip-link').each((index, element) => {
-    //   const href = $(element).attr('href');
-    //   const title = $(element).text();
-    //   links.push({ href, title });
-    // });
-    $('a.clip-link').each((index, element) => {
-      const href = $(element).attr('href');
-      const title = $(element).attr('title');
-      links.push({ href, title });
-    });
-
-    // Select elements by ID
-    // $('#your-id').each((index, element) => {
-    //   const href = $(element).attr('href');
-    //   const title = $(element).text();
-    //   links.push({ href, title });
-    // });
-
-    // Process the extracted data
-    links.forEach((link, index) => {
-
-      console.log(`Link ${index + 1}: ${link.title} - ${link.href}`);
-    });
+    const newData = await crawlVideos(websitesToCrawl);
+    const existingData = await readExistingData()
+    const difference = findDifferences(newData, existingData)
+    // If there are differences, send an email and write the new data to the CSV file
+    if (difference.length > 0) {
+      helperFn.sendEmail(difference);
+      writeNewVideo(difference);
+      deleteOldVideos();
+      return RESPONSE.SEND_EMAIL_SUCCESSFULLY;
+    }else {
+      helperFn.sendEmail('No new video');
+      deleteOldVideos();
+      return RESPONSE.SEND_EMAIL_SUCCESSFULLY;
+    }
   } catch (error) {
-    console.error('Error:', error.message);
+    console.error('Error:', error);
   }
-}
+};
 
 module.exports = {
   updateNewVideo
