@@ -3,6 +3,8 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 const { parse } = require("csv-parse");
 const moment = require('moment');
+const axios = require('axios');
+const cheerio = require('cheerio');
 const helperFn = require('../utils/helperFn');
 const {RESPONSE} = require('../constants/constants');
 const {
@@ -136,27 +138,62 @@ async function deleteOldVideos() {
 }
 
 
+// const updateNewVideo = async (req) => {
+//   try {
+//     const newData = await crawlVideos(websitesToCrawl);
+//     const existingData = await readExistingData()
+//     const difference = findDifferences(newData, existingData)
+//     // If there are differences, send an email and write the new data to the CSV file
+//     if (difference.length > 0) {
+//       helperFn.sendEmail(difference);
+//       writeNewVideo(difference);
+//       deleteOldVideos();
+//       return RESPONSE.SEND_EMAIL_SUCCESSFULLY;
+//     }else {
+//       helperFn.sendEmail('No new video');
+//       deleteOldVideos();
+//       return RESPONSE.SEND_EMAIL_SUCCESSFULLY;
+//     }
+//   } catch (error) {
+//     console.error('Error:', error);
+//   }
+// };
 const updateNewVideo = async (req) => {
   try {
-    const newData = await crawlVideos(websitesToCrawl);
-    const existingData = await readExistingData()
-    const difference = findDifferences(newData, existingData)
-    // If there are differences, send an email and write the new data to the CSV file
-    if (difference.length > 0) {
-      helperFn.sendEmail(difference);
-      writeNewVideo(difference);
-      deleteOldVideos();
-      return RESPONSE.SEND_EMAIL_SUCCESSFULLY;
-    }else {
-      helperFn.sendEmail('No new video');
-      deleteOldVideos();
-      return RESPONSE.SEND_EMAIL_SUCCESSFULLY;
-    }
-  } catch (error) {
-    console.error('Error:', error);
-  }
-};
+    const url = crawPageViet69.websiteURL;
+    const response = await axios.get(url);
+    const $ = cheerio.load(response.data);
 
+    const links = [];
+
+    // Select elements by class
+    // $('.clip-link').each((index, element) => {
+    //   const href = $(element).attr('href');
+    //   const title = $(element).text();
+    //   links.push({ href, title });
+    // });
+    $('a.clip-link').each((index, element) => {
+      const href = $(element).attr('href');
+      const title = $(element).attr('title');
+      links.push({ href, title });
+    });
+
+    // Select elements by ID
+    // $('#your-id').each((index, element) => {
+    //   const href = $(element).attr('href');
+    //   const title = $(element).text();
+    //   links.push({ href, title });
+    // });
+
+    // Process the extracted data
+    links.forEach((link, index) => {
+
+      console.log(`Link ${index + 1}: ${link.title} - ${link.href}`);
+    });
+  } catch (error) {
+    console.error('Error:', error.message);
+  }
+}
 
 module.exports = {
   updateNewVideo
