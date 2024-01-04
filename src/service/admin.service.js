@@ -51,8 +51,8 @@ async function crawlVideos(websites) {
 
     try {
       browser = await puppeteer.launch({
-        headless: "new",
-      });
+        headless: "new", 
+      }, { args: ['--no-sandbox',, `--headless`, `--disable-gpu`, `--disable-dev-shm-usage`]});
       const page = await browser.newPage();
       await page.setDefaultNavigationTimeout(90000);
       await page.goto(websiteURL);
