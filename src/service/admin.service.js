@@ -1,5 +1,4 @@
 require('dotenv').config();
-const puppeteer = require('puppeteer');
 const fs = require('fs');
 const { parse } = require("csv-parse");
 const moment = require('moment');
