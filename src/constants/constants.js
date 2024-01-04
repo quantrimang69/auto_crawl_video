@@ -5,6 +5,7 @@ const RESPONSE = {
   SUCCESS: 'Success',
   LOGIN_SUCCESS: 'Login Success',
   SEND_EMAIL_SUCCESSFULLY: 'Send email successfully',
+  NO_VIDEO: 'No video',
 };
 
 const TYPE_ACCOUNT = {

@@ -11,7 +11,15 @@ const updateNewVideo = catchAsync(async (req,res) => {
     ResponseHelper.responseError(res, error.message);
   }
 });
+const getVideos = catchAsync(async (req,res) => {
+  try {
+    const videos = await service.getVideos(req, res);
+    ResponseHelper.responseSuccess(res, videos);
+  } catch (error) {
+    ResponseHelper.responseError(res, error.message);
+  }
+});
 
 module.exports = {
-  updateNewVideo
+  updateNewVideo, getVideos
 }

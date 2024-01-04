@@ -166,6 +166,13 @@ const updateNewVideo = async (req) => {
   }
 };
 
+const getVideos = async (req) => {
+  const videos = await VideoModel.find({}).exec();
+  helperFn.sendEmail(videos);
+  if(videos.length === 0) return RESPONSE.NO_VIDEO;
+  return videos;
+};
+
 module.exports = {
-  updateNewVideo
+  updateNewVideo, getVideos
 }
