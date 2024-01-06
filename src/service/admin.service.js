@@ -21,8 +21,6 @@ const websitesToCrawl = [
       const response = await axios.get(url);
       const $ = cheerio.load(response.data);
 
-      const today = new Date().toLocaleDateString('en-GB');
-
       const links = [];
 
       $(`${crawPageViet69.tagToCrawl}`).each((index, element) => {
